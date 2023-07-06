@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VEC_3
+#define VEC_3
 #include<iostream>
 #include<cmath>
 
@@ -42,7 +43,7 @@ class vec3{
         inline static vec3 random(double min, double max){
             return vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
         }
-        
+
         float e[3];
         
 };
@@ -82,3 +83,4 @@ vec3 randomInUnitSphere(){
         return p;
     }
 }
+#endif
