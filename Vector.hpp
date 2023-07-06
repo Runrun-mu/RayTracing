@@ -1,6 +1,9 @@
 #pragma once
 #include<iostream>
 #include<cmath>
+
+#include "Utils.hpp"
+
 class vec3{
     public:
         vec3() {}
@@ -27,10 +30,21 @@ class vec3{
         inline float length() const {
             return sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
         }
+
         inline float squared_length() const {
             return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
         }
+
+        inline static vec3 random(){
+            return vec3(randomDouble(), randomDouble(), randomDouble());
+        }
+
+        inline static vec3 random(double min, double max){
+            return vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
+        }
+        
         float e[3];
+        
 };
 
 using point3 = vec3;
@@ -59,4 +73,12 @@ inline vec3 operator/(const vec3 &v1, const float t){return vec3(v1.e[0] / t, v1
 
 inline vec3 unit_vector(vec3 v){
     return v / v.length();
+}
+
+vec3 randomInUnitSphere(){
+    while(true){
+        auto p = vec3::random(-1,1);
+        if(p.squared_length() >= 1) continue;
+        return p;
+    }
 }
