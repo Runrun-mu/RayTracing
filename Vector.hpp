@@ -97,4 +97,12 @@ vec3 reflect(const vec3& v, const vec3& n){
     return v - n * 2 * dot(v,n);
 }
 
+//uv 入射光线方向，n 法线，etai_over_etat 折射率比
+vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
+    auto cos_theta = fmin(dot(-uv, n), 1.0);
+    vec3 r_out_perp = (uv + n * cos_theta) * etai_over_etat;
+    vec3 r_out_parallel = n * (-sqrt(fabs(1.0 - r_out_perp.length())) );
+    return r_out_perp + r_out_parallel;
+}
+
 #endif
