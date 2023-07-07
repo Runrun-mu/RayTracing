@@ -44,6 +44,10 @@ class vec3{
             return vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
         }
 
+        bool nearZero() const {
+            const auto s = 1e-8;
+            return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+        }
         float e[3];
         
 };
@@ -83,4 +87,14 @@ vec3 randomInUnitSphere(){
         return p;
     }
 }
+
+vec3 randomUnitVector(){
+    return unit_vector(randomInUnitSphere());
+}
+
+//计算反射向量
+vec3 reflect(const vec3& v, const vec3& n){
+    return v - n * 2 * dot(v,n);
+}
+
 #endif
