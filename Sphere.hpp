@@ -39,3 +39,23 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hitrecord& rec) const
     
     return true;
 }
+
+class moveing_sphere: public hitable{
+    public:
+        moveing_sphere(){}
+        moveing_sphere(point3 cen0, point3 cen1, double t0, double t1, double r, shared_ptr<material> m) : center0(cen0), center1(cen1), time0(t0), time1(t1), radius(r), matPtr(m) {};
+
+        virtual bool hit(const ray& r, double t_min, double t_max, hitrecord& rec) const override;
+
+        point3 center(double time) const;
+
+    public:
+        point3 center0, center1;
+        double time0, time1;
+        double radius;
+        shared_ptr<material> matPtr;
+};
+
+point3 moveing_sphere::center(double time) const{
+    return center0 + (center1 - center0) * ((time - time0) / (time1 - time0));
+}

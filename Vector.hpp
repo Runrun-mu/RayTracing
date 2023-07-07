@@ -105,4 +105,12 @@ vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
     return r_out_perp + r_out_parallel;
 }
 
+vec3 randomInUnitDisk(){
+    while(true){
+        auto p = vec3(randomDouble(-1,1), randomDouble(-1,1), 0);
+        if(p.squared_length() >= 1) continue;
+        return p;
+    }
+}
+
 #endif

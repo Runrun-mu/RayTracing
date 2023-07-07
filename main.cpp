@@ -8,6 +8,7 @@
 #include "Camera.hpp"
 #include "Hitable.hpp"
 #include "Material.hpp"
+#include <omp.h>
 #include <random>
 
 std::random_device rd;
@@ -99,8 +100,8 @@ int main(){
     const auto aspectRatio = 3.0 / 2.0;
     const int imageHeight = static_cast<int>(imageWidth / aspectRatio);
     const int samplesPerPixel = 500;
-    const int maxDepth = 100;
-    const int eval = 50;
+    const int maxDepth = 4;
+    const int eval = 2;
     const double pro = eval/maxDepth;
 
     //World
@@ -120,16 +121,20 @@ int main(){
 
 
     //Camera
-    camera cam(point3(-2,2,1), point3(0,0,-1), vec3(0,1,0), 90.0, aspectRatio);
+    point3 lookfrom(-2,2,1);
+    point3 lookat(0,0,-1);
+    vec3 asper = lookfrom - lookat;
+    camera cam(lookfrom, lookat, vec3(0,1,0), 90.0, aspectRatio, 2.0, asper.length());
 
     std::cout << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
     //Render
     for(int j = imageHeight - 1; j >= 0; --j){
+        #pragma omp parallel for
         //std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for(int i = 0; i < imageWidth; ++i){
             color3 pixel_color(0,0,0);
             for(int s = 0; s < samplesPerPixel; ++s){
-                std::cerr << "\rScanlines remaining: " << j << ' ' << "Scanheight remaining: " << i << ' ' << "Samples remaining: " << s << ' ' << std::flush;
+                //std::cerr << "\rScanlines remaining: " << j << ' ' << "Scanheight remaining: " << i << ' ' << "Samples remaining: " << s << ' ' << std::flush;
                 auto u = double(i + randomDouble()) / (imageWidth - 1);
                 auto v = double(j + randomDouble()) / (imageHeight - 1);
                 ray r = cam.getRay(u,v);
