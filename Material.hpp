@@ -2,17 +2,23 @@
 
 #include "Utils.hpp"
 #include "Ray.hpp"
+#include "Texture.hpp"
 
 struct hitrecord;
 
 class material{
     public:
+        virtual color3 emitted(double u, double v, const point3& p) const{
+            return color3(0, 0, 0);
+        }
         virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered) const = 0;
 };
 
 class lambertian: public material{
     public:
-        lambertian(const color3& a): albedo(a) {}
+        lambertian(const color3& a): albedo(make_shared<solidcolor>(a)) {}
+        lambertian(shared_ptr<texture> a): albedo(a) {}
+
 
         virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered) const override{
             auto scatter_direction = rec.normal + randomUnitVector();
@@ -20,13 +26,13 @@ class lambertian: public material{
             if(scatter_direction.nearZero())
                 scatter_direction = rec.normal;
 
-            scattered = ray(rec.p, scatter_direction);
-            attenuation = albedo;
+            scattered = ray(rec.p, scatter_direction,r_in.time());
+            attenuation = albedo->value(rec.u, rec.v, rec.p);
             return true;
         }
 
     public:
-        color3 albedo;
+        shared_ptr<texture> albedo;
 };
 
 class metal: public material {
@@ -35,7 +41,7 @@ class metal: public material {
 
         virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered) const override{
             vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
-            scattered = ray(rec.p, reflected + randomInUnitSphere() * fuzz);
+            scattered = ray(rec.p, reflected + randomInUnitSphere() * fuzz, r_in.time());
             attenuation = albedo;
             return (dot(scattered.direction(), rec.normal) > 0);
         }
@@ -67,7 +73,7 @@ class dielectric : public material {
                 direction = refract(unit_direction, rec.normal, refraction_ratio);
             }
 
-            scattered = ray(rec.p, direction);
+            scattered = ray(rec.p, direction,r_in.time());
             return true;
         }
 
@@ -80,4 +86,21 @@ class dielectric : public material {
             r0 = r0 * r0;
             return r0 + (1-r0)*pow((1 - cosine),5);
         }
+};
+
+class diffuselight : public material {
+    public:
+        diffuselight(shared_ptr<texture> a) : emit(a) {}
+        diffuselight(color3 c) : emit(make_shared<solidcolor>(c)) {}
+
+        virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered) const override{
+            return false;
+        }
+
+        virtual color3 emitted(double u, double v, const point3& p) const override{
+            return emit->value(u, v, p);
+        }
+
+    public:
+        shared_ptr<texture> emit;
 };

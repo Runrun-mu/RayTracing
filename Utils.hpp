@@ -35,3 +35,6 @@ inline double clamp(double x, double min, double max){
     return x;
 }
 
+inline int randomInt(int min, int max){
+    return static_cast<int>(randomDouble(min, max+1));
+}
