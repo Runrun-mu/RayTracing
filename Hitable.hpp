@@ -133,3 +133,21 @@ bool rotatey::hit(const ray& r, double tmin, double tmax, hitrecord& rec) const 
 
     return true;
 }
+
+class flipface: public hitable{
+    public:
+        flipface(shared_ptr<hitable> p): ptr(p) {}
+
+        virtual bool hit(const ray& r, double t_min, double t_max, hitrecord& rec) const override{
+            if(!ptr->hit(r, t_min, t_max, rec))
+                return false;
+            rec.frontFace = !rec.frontFace;
+            return true;
+        }
+
+        virtual bool boundingBox(double time0, double time1, aabb& outputBox) const override{
+            return ptr->boundingBox(time0, time1, outputBox);
+        }
+
+        shared_ptr<hitable> ptr;
+};

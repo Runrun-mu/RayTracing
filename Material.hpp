@@ -3,12 +3,13 @@
 #include "Utils.hpp"
 #include "Ray.hpp"
 #include "Texture.hpp"
+#include "ONB.hpp"
 
 struct hitrecord;
 
 class material{
     public:
-        virtual color3 emitted(double u, double v, const point3& p) const{
+        virtual color3 emitted(const ray&r_in, const hitrecord& rec,double u, double v, const point3& p) const{
             return color3(0, 0, 0);
         }
         virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered, double& pdf) const {
@@ -30,6 +31,8 @@ class lambertian: public material{
 
 
         virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered, double& pdf) const override{
+            onb uvw;
+            uvw.build_from_w(rec.normal);
             auto scatter_direction = rec.normal + randomUnitVector();
             auto direction = randomInHemisphere(rec.normal);
             if(scatter_direction.nearZero())
@@ -37,7 +40,7 @@ class lambertian: public material{
     
             scattered = ray(rec.p, unit_vector(direction),r_in.time());
             attenuation = albedo->value(rec.u, rec.v, rec.p);
-            pdf = 0.5 / pi;
+            pdf = dot(uvw.w(), scattered.direction()) / pi;
             return true;
         }
 
@@ -112,8 +115,13 @@ class diffuselight : public material {
             return false;
         }
 
-        virtual color3 emitted(double u, double v, const point3& p) const override{
-            return emit->value(u, v, p);
+        virtual color3 emitted(const ray& r_in, const hitrecord& rec, double u, double v, const point3& p) const override{
+            if(rec.frontFace) {
+                return emit->value(u, v, p);
+            }
+            else{
+                return color3(0,0,0);
+            }
         }
 
     public:

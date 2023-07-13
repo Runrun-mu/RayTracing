@@ -120,4 +120,16 @@ vec3 randomInHemisphere(const vec3& normal) {
     else
         return -in_unit_sphere;
 }
+
+vec3 randomCosineDirection() {
+    auto r1 = randomDouble();
+    auto r2 = randomDouble();
+    auto z = sqrt(1-r2);
+
+    auto phi = 2*pi*r1;
+    auto x = cos(phi)*sqrt(r2);
+    auto y = sin(phi)*sqrt(r2);
+
+    return vec3(x, y, z);
+}
 #endif

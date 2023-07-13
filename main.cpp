@@ -112,12 +112,24 @@ color3 ray_color(const ray& r, const color3& background, const hitable& world, i
         //vec3 N = unit_vector(r.at(hit_sphere(point3(0,0,-1), 0.5, r)) - vec3(0,0,-1));
     ray scattered;
     color3 attenuation;
-    color3 emitted = rec.matPtr->emitted(rec.u, rec.v, rec.p);
+    color3 emitted = rec.matPtr->emitted(r,rec,rec.u, rec.v, rec.p);
 
     double pdf;
     color3 albedo;
     if(!rec.matPtr->scatter(r, rec, albedo, scattered, pdf))
         return emitted;
+    auto on_light = point3(randomDouble(213,343),554,randomDouble(227,332));
+    auto to_light = on_light - rec.p;
+    auto distance_squared = to_light.squared_length();
+    to_light = unit_vector(to_light);
+    if(dot(to_light, rec.normal) < 0)
+        return emitted;
+    auto light_area = (343-213)*(332-227);
+    auto light_cosine = fabs(to_light.y());
+    if(light_cosine < 0.000001)
+        return emitted;
+    pdf = distance_squared / (light_cosine * light_area);
+    scattered = ray(rec.p, to_light, r.time());
     
     return emitted + albedo * rec.matPtr->scattering_pdf(r, rec, scattered)*ray_color(scattered, background, world, depth - 1, pro) / pdf;
     //if(!rec.matPtr->scatter(r, rec, attenuation, scattered))
@@ -153,7 +165,7 @@ hitablelist conell_box(){
 
     objects.add(make_shared<yzrect>(0, 555, 0, 555, 555, green));
     objects.add(make_shared<yzrect>(0, 555, 0, 555, 0, red));
-    objects.add(make_shared<xzrect>(213, 343, 227, 332, 554, light));
+    objects.add(make_shared<flipface>(make_shared<xzrect>(213, 343, 227, 332, 554, light)));
     objects.add(make_shared<xzrect>(0, 555, 0, 555, 0, white));
     objects.add(make_shared<xzrect>(0, 555, 0, 555, 555, white));
     objects.add(make_shared<xyrect>(0, 555, 0, 555, 555, white));
