@@ -113,4 +113,11 @@ vec3 randomInUnitDisk(){
     }
 }
 
+vec3 randomInHemisphere(const vec3& normal) {
+    vec3 in_unit_sphere = randomInUnitSphere();
+    if (dot(in_unit_sphere, normal) > 0.0) // In the same hemisphere as the normal
+        return in_unit_sphere;
+    else
+        return -in_unit_sphere;
+}
 #endif

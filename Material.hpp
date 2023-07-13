@@ -11,7 +11,16 @@ class material{
         virtual color3 emitted(double u, double v, const point3& p) const{
             return color3(0, 0, 0);
         }
-        virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered) const = 0;
+        virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered, double& pdf) const {
+            return false;
+        }
+        virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered) const {
+            return false;
+        }
+        virtual double scattering_pdf(const ray& r_in, const hitrecord& rec, const ray& scattered) const{
+            return 0;
+        }
+
 };
 
 class lambertian: public material{
@@ -20,15 +29,21 @@ class lambertian: public material{
         lambertian(shared_ptr<texture> a): albedo(a) {}
 
 
-        virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered) const override{
+        virtual bool scatter(const ray& r_in, const hitrecord& rec, color3& attenuation, ray& scattered, double& pdf) const override{
             auto scatter_direction = rec.normal + randomUnitVector();
-
+            auto direction = randomInHemisphere(rec.normal);
             if(scatter_direction.nearZero())
                 scatter_direction = rec.normal;
-
-            scattered = ray(rec.p, scatter_direction,r_in.time());
+    
+            scattered = ray(rec.p, unit_vector(direction),r_in.time());
             attenuation = albedo->value(rec.u, rec.v, rec.p);
+            pdf = 0.5 / pi;
             return true;
+        }
+
+        double scattering_pdf(const ray& r_in, const hitrecord& rec, const ray& scattered) const override{
+            auto cosine = dot(rec.normal, unit_vector(scattered.direction()));
+            return cosine < 0 ? 0 : cosine / pi;
         }
 
     public:

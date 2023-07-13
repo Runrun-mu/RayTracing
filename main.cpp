@@ -114,9 +114,15 @@ color3 ray_color(const ray& r, const color3& background, const hitable& world, i
     color3 attenuation;
     color3 emitted = rec.matPtr->emitted(rec.u, rec.v, rec.p);
 
-    if(!rec.matPtr->scatter(r, rec, attenuation, scattered))
+    double pdf;
+    color3 albedo;
+    if(!rec.matPtr->scatter(r, rec, albedo, scattered, pdf))
         return emitted;
-    return emitted + attenuation * ray_color(scattered, background, world, depth - 1, pro);
+    
+    return emitted + albedo * rec.matPtr->scattering_pdf(r, rec, scattered)*ray_color(scattered, background, world, depth - 1, pro) / pdf;
+    //if(!rec.matPtr->scatter(r, rec, attenuation, scattered))
+    //    return emitted;
+    //return emitted + attenuation * ray_color(scattered, background, world, depth - 1, pro);
         //point3 target = rec.p + rec.normal + randomUnitVector();
         //return  (ray_color(ray(rec.p, target - rec.p), world, depth - 1)) * 0.5;
     //vec3 unitDirection = unit_vector(r.direction());
